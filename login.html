@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LX Music Web - 登录</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #0f1420;
+    color: #e8ecf4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(64, 120, 255, 0.14), transparent),
+      radial-gradient(ellipse 70% 55% at 85% 85%, rgba(150, 80, 255, 0.12), transparent),
+      radial-gradient(ellipse 50% 40% at 60% 40%, rgba(0, 200, 180, 0.06), transparent);
+    padding: 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(22, 28, 44, 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    padding: 44px 36px 36px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+    animation: rise 0.5s ease both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+  }
+  h1 { text-align: center; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
+  .sub { text-align: center; font-size: 13px; color: #8b94a9; margin: 8px 0 28px; }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block; font-size: 13px; color: #9aa3b8; margin-bottom: 7px;
+  }
+  .field input {
+    width: 100%;
+    padding: 13px 15px;
+    font-size: 15px;
+    color: #eef1f7;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .field input::placeholder { color: #5b6478; }
+  .field input:focus {
+    border-color: #5b8cff;
+    background: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.18);
+  }
+  .btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.35);
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(99, 102, 241, 0.45); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+  .error {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #ff8f8f;
+    background: rgba(255, 90, 90, 0.1);
+    border: 1px solid rgba(255, 90, 90, 0.25);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .error.show { display: block; animation: shake 0.35s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-4px); }
+  }
+  .hint {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: #5f6880;
+  }
+  .autobar {
+    display: none;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #9fc1ff;
+    background: rgba(91, 140, 255, 0.1);
+    border: 1px solid rgba(91, 140, 255, 0.25);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .autobar.show { display: block; }
+  .autobar button {
+    margin-left: 8px;
+    padding: 2px 10px;
+    font-size: 12px;
+    color: #9fc1ff;
+    background: transparent;
+    border: 1px solid rgba(91, 140, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: -3px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🎵</div>
+    <h1>LX Music Web</h1>
+    <p class="sub">请输入账号与密码以访问播放器</p>
+    <div class="autobar" id="autoBar">
+      <span class="spinner"></span>正在自动登录…
+      <button type="button" id="autoCancel">取消</button>
+    </div>
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="username">用户名</label>
+        <input id="username" name="username" type="text" placeholder="请输入用户名"
+               autocomplete="username" autofocus>
+      </div>
+      <div class="field">
+        <label for="password">密码</label>
+        <input id="password" name="password" type="password" placeholder="请输入密码"
+               autocomplete="current-password">
+      </div>
+      <button class="btn" type="submit" id="submitBtn">登 录</button>
+      <div class="error" id="errorBox"></div>
+    </form>
+    <p class="hint">还没有账号？请联系管理员开通</p>
+  </div>
+
+<script>
+(function () {
+  var form = document.getElementById('loginForm');
+  var userInput = document.getElementById('username');
+  var pwdInput = document.getElementById('password');
+  var btn = document.getElementById('submitBtn');
+  var errorBox = document.getElementById('errorBox');
+  var autoBar = document.getElementById('autoBar');
+  var autoCancelled = false;
+
+  // 登录页所在路径的前缀即播放器路径：/login -> / ；/music/login -> /music/
+  var base = location.pathname.replace(/\/?login(\.html)?\/?$/, '');
+  var playerHome = (base === '' ? '/' : base + '/');
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.remove('show');
+    void errorBox.offsetWidth; // 重启动画
+    errorBox.classList.add('show');
+  }
+  function hideError() { errorBox.classList.remove('show'); }
+  function setLoading(loading) {
+    btn.disabled = loading;
+    btn.innerHTML = loading ? '<span class="spinner"></span>登录中' : '登 录';
+  }
+
+  // 已登录则直接进播放器；未开启认证也直接进
+  fetch('/api/music/config', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (cfg) {
+    if (!cfg['player.enableAuth']) { location.replace(playerHome); return; }
+    return fetch('/api/music/auth/verify', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.valid) { location.replace(playerHome); return; }
+      tryAutoLogin(); // 会话失效时，用记住的账号静默重登
+    });
+  }).catch(function () {});
+
+  document.getElementById('autoCancel').addEventListener('click', function () {
+    autoCancelled = true;
+    autoBar.classList.remove('show');
+    setLoading(false);
+  });
+
+  function getStoredCreds() {
+    try {
+      var u = localStorage.getItem('lx_sync_user');
+      var p = localStorage.getItem('lx_sync_pass');
+      if (u && p) return { username: u, password: p };
+    } catch (e) {}
+    return null;
+  }
+
+  // 预取同步 Token，让播放器打开即恢复会话；失败也不影响，播放器会用存下的账号自动登录
+  function refreshSyncToken(creds) {
+    return fetch('/api/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: creds.username, password: creds.password })
+    }).then(function (r) { return r.json(); }).then(function (t) {
+      if (t && t.success && t.token) {
+        try { localStorage.setItem('lx_user_token', t.token); } catch (e) {}
+      }
+    }).catch(function () {});
+  }
+
+  // 静默自动登录：session 过期/容器重启后，用户无感恢复登录态
+  function tryAutoLogin() {
+    var creds = getStoredCreds();
+    if (!creds || autoCancelled) return;
+    autoBar.classList.add('show');
+    setLoading(true);
+    btn.innerHTML = '<span class="spinner"></span>自动登录中';
+    setTimeout(function () {
+      if (autoCancelled) return;
+      fetch('/api/music/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: creds.username, password: creds.password })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (autoCancelled) return;
+        if (d && d.success) {
+          refreshSyncToken(creds);
+          setTimeout(function () {
+            if (!autoCancelled) location.replace(playerHome);
+          }, 400);
+        } else {
+          // 记住的密码失效了（比如管理员改了密码）：清掉，停在表单让用户重输
+          try {
+            localStorage.removeItem('lx_sync_pass');
+            localStorage.removeItem('lx_user_token');
+          } catch (e) {}
+          autoBar.classList.remove('show');
+          setLoading(false);
+          userInput.value = creds.username;
+          showError('已记住的账号失效，请重新登录');
+        }
+      }, function () {
+        if (autoCancelled) return;
+        autoBar.classList.remove('show');
+        setLoading(false);
+      });
+    }, 700);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    hideError();
+    var username = userInput.value.trim();
+    var password = pwdInput.value;
+    if (!password) { showError('请输入密码'); pwdInput.focus(); return; }
+    if (!username) { showError('请输入用户名'); userInput.focus(); return; }
+    setLoading(true);
+    fetch('/api/music/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      setLoading(false);
+      if (d && d.success) {
+        // 把同一套账号写入播放器的数据同步登录态，进播放器后自动登录同步
+        try {
+          localStorage.setItem('lx_sync_mode', 'local');
+          localStorage.setItem('lx_sync_user', username);
+          localStorage.setItem('lx_sync_pass', password);
+        } catch (e) {}
+        // 预取同步 Token，让播放器打开即恢复会话；
+        // 即使失败也不影响，播放器会用上面存下的账号自动登录
+        var tokenDone = false;
+        function goPlayer() {
+          if (!tokenDone) { tokenDone = true; location.replace(playerHome); }
+        }
+        refreshSyncToken({ username: username, password: password }).then(goPlayer, goPlayer);
+        setTimeout(goPlayer, 1500); // 兜底：1.5 秒没回来也进播放器
+      } else {
+        showError('用户名或密码错误，请重试');
+        pwdInput.select();
+      }
+    }).catch(function () {
+      setLoading(false);
+      showError('网络错误，请稍后重试');
+    });
+  });
+})();
+</script>
+</body>
+</html>
