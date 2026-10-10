@@ -9,7 +9,8 @@
 //    - 传了 username：到用户列表(users)里校验用户名+密码
 //    - 没传 username：保持原来的共享密码逻辑不变
 // 2. 播放器会话有效期从 24 小时延长到 30 天（配合登录页静默重登，基本无感）
-// 原文件会自动备份为 server.js.bak（同目录，仅第一次备份）
+// 3. 播放器 index.html 的 viewport 改为禁止缩放（手机浏览器不再自动放大）
+// 原文件会自动备份为 server.js.bak / index.html.bak（同目录，仅第一次备份）
 
 const fs = require('fs')
 
@@ -96,6 +97,32 @@ if (ttlNew.test(src)) {
   console.log('会话有效期已延长为 30 天。')
 } else {
   console.log('未找到 SESSION_TTL 定义，跳过有效期延长（不影响登录补丁）。')
+}
+
+// ---------- 补丁 3：播放器 index.html 禁止移动端缩放 ----------
+// 播放器页面的 viewport 默认允许缩放，手机浏览器会自动放大；改成禁止缩放
+const idxCandidates = [
+  '/server/public/music/index.html',
+  '/server/public/index.html',
+  '/app/public/music/index.html',
+].filter(f => { try { return fs.existsSync(f) } catch { return false } })
+const IDX = idxCandidates[0]
+const viewportOld = '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+const viewportNew = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
+if (!IDX) {
+  console.log('未找到播放器 index.html，跳过 viewport 修改（不影响其他补丁）。')
+} else {
+  let html = fs.readFileSync(IDX, 'utf8')
+  if (html.includes(viewportNew)) {
+    console.log('index.html viewport 已是禁止缩放，跳过。')
+  } else if (html.includes(viewportOld)) {
+    html = html.split(viewportOld).join(viewportNew)
+    if (!fs.existsSync(IDX + '.bak')) fs.copyFileSync(IDX, IDX + '.bak')
+    fs.writeFileSync(IDX, html)
+    console.log('index.html viewport 已修改为禁止缩放。')
+  } else {
+    console.log('index.html 中未找到目标 viewport，跳过（不影响其他补丁）。')
+  }
 }
 
 // ---------- 写回 ----------
