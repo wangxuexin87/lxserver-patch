@@ -11,7 +11,7 @@
 #   6. 可选：批量添加用户
 #
 # 用法（任选一种）：
-#   curl -fsSL https://raw.githubusercontent.com/<你的用户名>/<仓库名>/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wangxuexin87/lxserver-patch/main/install.sh | bash
 #   或：下载后 bash install.sh
 #
 # 说明：

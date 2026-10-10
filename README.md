@@ -6,7 +6,7 @@
 ## 一键执行
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<你的用户名>/<仓库名>/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wangxuexin87/lxserver-patch/main/install.sh | bash
 ```
 
 单文件、幂等，可重复执行。执行后按提示操作即可（加用户步骤可直接回车跳过）。
