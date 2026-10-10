@@ -605,6 +605,24 @@ fi
 rm -rf "$WORKDIR_TMP"
 
 say "步骤 6/7：重建容器（应用全部修改）"
+# 镜像版本默认用 latest，避免 compose 文件里写死旧版本
+COMPOSE_FILE=""
+if [ -f "$DIR/docker-compose.yml" ]; then COMPOSE_FILE="$DIR/docker-compose.yml"
+elif [ -f "$DIR/docker-compose.yaml" ]; then COMPOSE_FILE="$DIR/docker-compose.yaml"
+fi
+if [ -n "$COMPOSE_FILE" ]; then
+  IMG_LINE=$(grep -m1 -E '^\s*image:\s*xcq0607/lxserver' "$COMPOSE_FILE" || true)
+  if [ -n "$IMG_LINE" ]; then
+    case "$IMG_LINE" in
+      *":latest"*) echo "    镜像已是 latest，跳过" ;;
+      *)
+        [ -f "$COMPOSE_FILE.bak" ] || cp "$COMPOSE_FILE" "$COMPOSE_FILE.bak"
+        sed -i -E 's|^(\s*image:\s*xcq0607/lxserver)(:[^[:space:]#]+)?|\1:latest|' "$COMPOSE_FILE"
+        echo "    镜像版本已更新为 latest（原文件备份为 $(basename "$COMPOSE_FILE").bak）"
+        ;;
+    esac
+  fi
+fi
 ARGS=""
 if [ -n "${CFG:-}" ] && [ "$CFG" != "<no value>" ]; then
   for f in $(echo "$CFG" | tr ',' ' '); do
