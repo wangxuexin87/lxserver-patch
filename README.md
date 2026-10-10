@@ -9,16 +9,16 @@
 curl -fsSL https://raw.githubusercontent.com/wangxuexin87/lxserver-patch/main/install.sh | bash
 ```
 
-单文件、幂等，可重复执行。执行后按提示操作即可（加用户步骤可直接回车跳过）。
+幂等，可重复执行。执行后按提示操作即可（加用户步骤可直接回车跳过）。
 
 ## 改造内容
 
 | # | 内容 | 说明 |
 |---|------|------|
-| 1 | 登录页替换 | `login.html`：用户名+密码登录页，替代原生共享密码页 |
+| 1 | 登录页替换 | `login.html`：用户名+密码登录页，替代原生共享密码页；登录后数据同步自动登录；session 失效时静默自动重登 |
 | 2 | 后端补丁 | `patch-auth.js`：`POST /api/music/auth` 改为校验 `users.json` 中的用户名+密码；不传用户名时保留共享密码兼容 |
-| 3 | 自动同步登录 | 登录成功后自动把账号写入播放器，数据同步无需二次登录 |
-| 4 | 会话持久 | 播放器会话有效期 24 小时 → 30 天；失效后打开网站自动静默重登 |
+| 3 | 会话持久 | 播放器会话有效期 24 小时 → 30 天 |
+| 4 | 移动端禁止缩放 | 播放器 `index.html` 的 viewport 改为 `maximum-scale=1.0, user-scalable=no` |
 | 5 | 更新持久化 | 生成 `docker-compose.override.yml`：挂载登录页与补丁脚本，容器每次启动自动打补丁；更新镜像后无需手动操作 |
 
 ## 仓库文件
@@ -28,8 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/wangxuexin87/lxserver-patch/main/in
 - `patch-auth.js` —— 后端补丁源码（独立文件，方便查看/修改）
 
 > 修改 `login.html` / `patch-auth.js` 后，请同步把新内容嵌回 `install.sh`
-> 对应 heredoc 段（`__LX_LOGIN_HTML__` / `__LX_PATCH_AUTH_JS__` 之间），
-> 或直接改 `install.sh` 内嵌段。
+> 对应 heredoc 段（`__LX_LOGIN_HTML__` / `__LX_PATCH_AUTH_JS__` 之间）。
 
 ## 日常维护
 
@@ -41,5 +40,6 @@ curl -fsSL https://raw.githubusercontent.com/wangxuexin87/lxserver-patch/main/in
 
 - 登录页：容器内 `/server/public/music/login.html.bak`
 - 后端：容器内 `/server/server/server/server.js.bak`（实际路径以补丁日志为准）
+- 播放器页面：容器内 `/server/public/music/index.html.bak`
 
 回滚后执行 `docker restart <容器名>`。
