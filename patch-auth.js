@@ -38,7 +38,10 @@ let needWrite = false
 const count = (s, sub) => s.split(sub).length - 1
 
 // ---------- 补丁 1：用户名+密码登录 ----------
-if (src.includes('const { password, username } = JSON.parse(body)')) {
+// v2.1.3+ 官方已原生支持用户名+密码双模式登录，跳过此补丁
+if (src.includes('const { password, username, mode } = JSON.parse(body)')) {
+  console.log('检测到 v2.1.3+ 原生用户名密码登录，跳过认证补丁。')
+} else if (src.includes('const { password, username } = JSON.parse(body)')) {
   console.log('登录补丁已打过，跳过。')
 } else {
 

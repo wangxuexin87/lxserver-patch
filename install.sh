@@ -64,7 +64,30 @@ fi
 say "Compose 目录：$DIR（服务名：$SERVICE）"
 cd "$DIR" || die "无法进入目录"
 
+# 检测新镜像是否为 v2.1.3+（原生支持用户名+密码登录，无需覆盖登录页）
+# v2.1.3 的 server.js 包含 "password, username, mode" 原生双模式登录代码
+IS_NATIVE_AUTH=0
+for _p in /server/server/server/server.js /server/server/server.js /server/dist/server.js /app/server/server.js; do
+  if docker run --rm xcq0607/lxserver:latest grep -q "password, username, mode" "$_p" 2>/dev/null; then
+    IS_NATIVE_AUTH=1
+    break
+  fi
+done
+if [ "$IS_NATIVE_AUTH" = "1" ]; then
+  echo "    检测到 v2.1.3+ 原生登录支持，将保留官方登录页（不再覆盖）"
+fi
+
 say "步骤 3/7：写入 login.html 和 patch-auth.js"
+if [ "$IS_NATIVE_AUTH" = "1" ]; then
+  echo "    跳过 login.html（使用官方 v2.1.3+ 新版登录页）"
+  # 确保 override 不再挂载旧的 login.html（如果之前挂载过）
+  if [ -f "$DIR/docker-compose.override.yml" ]; then
+    if grep -q "login.html" "$DIR/docker-compose.override.yml" 2>/dev/null; then
+      sed -i '/login.html/d' "$DIR/docker-compose.override.yml"
+      echo "    已从 override 中移除 login.html 挂载"
+    fi
+  fi
+else
 cat > "$DIR/login.html" <<'__LX_LOGIN_HTML__'
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -385,6 +408,7 @@ cat > "$DIR/login.html" <<'__LX_LOGIN_HTML__'
 </body>
 </html>
 __LX_LOGIN_HTML__
+fi
 cat > "$DIR/patch-auth.js" <<'__LX_PATCH_AUTH_JS__'
 // patch-auth.js
 // 用法（在宿主机上执行）：
@@ -426,7 +450,10 @@ let needWrite = false
 const count = (s, sub) => s.split(sub).length - 1
 
 // ---------- 补丁 1：用户名+密码登录 ----------
-if (src.includes('const { password, username } = JSON.parse(body)')) {
+// v2.1.3+ 官方已原生支持用户名+密码双模式登录，跳过此补丁
+if (src.includes('const { password, username, mode } = JSON.parse(body)')) {
+  console.log('检测到 v2.1.3+ 原生用户名密码登录，跳过认证补丁。')
+} else if (src.includes('const { password, username } = JSON.parse(body)')) {
   console.log('登录补丁已打过，跳过。')
 } else {
 
