@@ -681,13 +681,22 @@ for _ in $(seq 1 12); do
   [ -z "$SRV" ] && { echo "    等待服务端文件..."; continue; }
   docker exec "$CONTAINER" grep -q "password, username" "$SRV" 2>/dev/null && ok_patch=1
   docker exec "$CONTAINER" grep -q "SESSION_TTL = 30" "$SRV" 2>/dev/null && ok_ttl=1
-  docker exec "$CONTAINER" grep -q "tryAutoLogin" /server/public/music/login.html 2>/dev/null && ok_page=1
+  if [ "$IS_NATIVE_AUTH" = "1" ]; then
+    # v2.1.3+ 用官方登录页：检查原生自动恢复标记
+    docker exec "$CONTAINER" grep -q "lx_sync_user" /server/public/music/login.html 2>/dev/null && ok_page=1
+  else
+    docker exec "$CONTAINER" grep -q "tryAutoLogin" /server/public/music/login.html 2>/dev/null && ok_page=1
+  fi
   [ "$ok_patch" = "1" ] && [ "$ok_page" = "1" ] && break
   echo "    等待补丁生效..."
 done
-[ "$ok_patch" = "1" ] && echo "    [OK] 用户名+密码登录补丁已生效" || die "登录补丁验证失败，请检查：docker logs $CONTAINER"
+[ "$ok_patch" = "1" ] && echo "    [OK] 用户名+密码登录已生效" || die "登录补丁验证失败，请检查：docker logs $CONTAINER"
 [ "$ok_ttl" = "1" ] && echo "    [OK] 会话有效期已延长为 30 天" || echo "    [--] 会话有效期延长未匹配到（不影响登录，可能是上游改了代码）"
-[ "$ok_page" = "1" ] && echo "    [OK] 新版登录页已挂载（含自动同步登录）" || die "登录页验证失败"
+if [ "$IS_NATIVE_AUTH" = "1" ]; then
+  [ "$ok_page" = "1" ] && echo "    [OK] 官方 v2.1.3+ 登录页正常（含原生自动恢复）" || die "登录页验证失败"
+else
+  [ "$ok_page" = "1" ] && echo "    [OK] 新版登录页已挂载（含自动同步登录）" || die "登录页验证失败"
+fi
 
 echo ""
 echo "================ 完成 ================"
