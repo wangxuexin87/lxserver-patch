@@ -636,6 +636,10 @@ else
 fi
 [ -n "${PROJECT:-}" ] && ARGS="-p $PROJECT $ARGS"
 ARGS="$ARGS -f $OVERRIDE"
+# 先拉最新镜像，保证更新到上游最新版
+say "拉取最新镜像..."
+# shellcheck disable=SC2086
+$COMPOSE $ARGS pull || echo "    镜像拉取失败，用本地镜像继续"
 # shellcheck disable=SC2086
 $COMPOSE $ARGS up -d --force-recreate || die "容器重建失败"
 
