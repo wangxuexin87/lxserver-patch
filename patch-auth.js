@@ -102,29 +102,33 @@ if (ttlNew.test(src)) {
   console.log('未找到 SESSION_TTL 定义，跳过有效期延长（不影响登录补丁）。')
 }
 
-// ---------- 补丁 3：播放器 index.html 禁止移动端缩放 ----------
-// 播放器页面的 viewport 默认允许缩放，手机浏览器会自动放大；改成禁止缩放
-const idxCandidates = [
+// ---------- 补丁 3：播放器页面禁止移动端缩放 ----------
+// 播放器/index.html 和 login.html 的 viewport 默认允许缩放，手机浏览器会自动放大；改成禁止缩放
+const viewportTargets = [
   '/server/public/music/index.html',
+  '/server/public/music/login.html',
   '/server/public/index.html',
   '/app/public/music/index.html',
+  '/app/public/music/login.html',
 ].filter(f => { try { return fs.existsSync(f) } catch { return false } })
-const IDX = idxCandidates[0]
-const viewportOld = '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
 const viewportNew = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
-if (!IDX) {
-  console.log('未找到播放器 index.html，跳过 viewport 修改（不影响其他补丁）。')
+// 宽松匹配：兼容 v2.1.3 的 viewport-fit=cover 等变体
+const viewportRe = /<meta\s+name="viewport"\s+content="[^"]*width=device-width[^"]*">/
+if (viewportTargets.length === 0) {
+  console.log('未找到播放器页面，跳过 viewport 修改（不影响其他补丁）。')
 } else {
-  let html = fs.readFileSync(IDX, 'utf8')
-  if (html.includes(viewportNew)) {
-    console.log('index.html viewport 已是禁止缩放，跳过。')
-  } else if (html.includes(viewportOld)) {
-    html = html.split(viewportOld).join(viewportNew)
-    if (!fs.existsSync(IDX + '.bak')) fs.copyFileSync(IDX, IDX + '.bak')
-    fs.writeFileSync(IDX, html)
-    console.log('index.html viewport 已修改为禁止缩放。')
-  } else {
-    console.log('index.html 中未找到目标 viewport，跳过（不影响其他补丁）。')
+  for (const target of viewportTargets) {
+    let html = fs.readFileSync(target, 'utf8')
+    if (html.includes('maximum-scale=1.0, user-scalable=no')) {
+      console.log(target + ' viewport 已是禁止缩放，跳过。')
+    } else if (viewportRe.test(html)) {
+      html = html.replace(viewportRe, viewportNew)
+      if (!fs.existsSync(target + '.bak')) fs.copyFileSync(target, target + '.bak')
+      fs.writeFileSync(target, html)
+      console.log(target + ' viewport 已修改为禁止缩放。')
+    } else {
+      console.log(target + ' 中未找到目标 viewport，跳过。')
+    }
   }
 }
 
